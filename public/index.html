@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>クイズサイト</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>クイズサイト</h1>
+    <input type="file" id="csvFileInput" accept=".csv">
+    <div id="quiz-container" style="display:none;">
+        <p id="timer"></p>
+        <p id="question"></p>
+        <ul id="choices"></ul>
+        <p id="result"></p>
+        <button id="next-button" style="display:none;">次の問題へ</button>
+        <p>スコア: <span id="score">0</span></p>
+        <button id="pause-button">中断する</button>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
