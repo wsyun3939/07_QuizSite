@@ -1,22 +1,41 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <title>クイズサイト</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>クイズサイト</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
 </head>
 <body>
+  <div class="quiz-container">
     <h1>クイズサイト</h1>
-    <input type="file" id="csvFileInput" accept=".csv">
-    <div id="quiz-container" style="display:none;">
-        <p id="timer"></p>
-        <p id="question"></p>
-        <ul id="choices"></ul>
-        <p id="result"></p>
-        <button id="next-button" style="display:none;">次の問題へ</button>
-        <p>スコア: <span id="score">0</span></p>
-        <button id="pause-button">中断する</button>
+
+    <div class="button-group" id="main-buttons">
+      <button id="start-button">▶ スタート</button>
+      <button id="reset-button" class="danger">🔄 進捗リセット</button>
     </div>
-    <script src="script.js"></script>
+
+    <div id="quiz-section" style="display: none;">
+      <div id="question"></div>
+      <div id="choices"></div>
+      <div id="feedback"></div>
+      <div id="score">スコア: 0</div>
+      <div id="timer">残り時間: 10秒</div>
+      <button id="next-button" style="display: none;">次の問題へ</button>
+      <button id="pause-button">⏸ 中断する</button>
+    </div>
+  </div>
+
+  <!-- モーダル（開始選択） -->
+  <div id="start-modal" class="modal">
+    <div class="modal-content">
+      <h2>前回の続きがあります</h2>
+      <p>続きから始めますか？</p>
+      <button id="resume-button">▶ 続きから</button>
+      <button id="restart-button" class="danger">🔁 最初から</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>

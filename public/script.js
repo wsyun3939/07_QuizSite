@@ -2,116 +2,213 @@ let questions = [];
 let currentIndex = 0;
 let score = 0;
 let timer;
-let timeLeft = 10;
+let timeLeft;
+let config = {
+  time_limit: 10,
+  shuffle_questions: false,
+  enable_images: false,
+  enable_audio: false
+};
 
-const csvInput = document.getElementById('csvFileInput');
-const quizContainer = document.getElementById('quiz-container');
-const questionElement = document.getElementById('question');
-const choicesElement = document.getElementById('choices');
-const resultElement = document.getElementById('result');
-const scoreElement = document.getElementById('score');
-const nextButton = document.getElementById('next-button');
-const timerElement = document.getElementById('timer');
-const pauseButton = document.getElementById('pause-button');
+const startBtn = document.getElementById('start-button');
+const resetBtn = document.getElementById('reset-button');
+const quizSection = document.getElementById('quiz-section');
+const questionDiv = document.getElementById('question');
+const choicesDiv = document.getElementById('choices');
+const feedbackDiv = document.getElementById('feedback');
+const scoreDiv = document.getElementById('score');
+const timerDiv = document.getElementById('timer');
+const nextBtn = document.getElementById('next-button');
+const pauseBtn = document.getElementById('pause-button');
+const modal = document.getElementById('start-modal');
+const resumeBtn = document.getElementById('resume-button');
+const restartBtn = document.getElementById('restart-button');
 
-csvInput.addEventListener('change', (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const csvText = e.target.result;
-            parseCSV(csvText);
-            loadProgress();
-            showQuestion();
-            quizContainer.style.display = 'block';
-        };
-        reader.readAsText(file);
-    }
+window.addEventListener('DOMContentLoaded', async () => {
+  await loadConfig();
+  await loadCSV();
+
+  const hasProgress = localStorage.getItem('quizCurrentIndex');
+  if (hasProgress) {
+    modal.style.display = 'flex';
+  } else {
+    showMainButtons();
+  }
 });
 
+resumeBtn.addEventListener('click', () => {
+  modal.style.display = 'none';
+  loadProgress();
+  startQuiz();
+});
+
+restartBtn.addEventListener('click', () => {
+  modal.style.display = 'none';
+  clearProgress();
+  startQuiz();
+});
+
+startBtn.addEventListener('click', () => {
+  startBtn.style.display = 'none';
+  resetBtn.style.display = 'none';
+  startQuiz();
+});
+
+resetBtn.addEventListener('click', () => {
+  if (confirm('保存された進捗をリセットしますか？')) {
+    clearProgress();
+    alert('進捗をリセットしました。');
+    location.reload();
+  }
+});
+
+function startQuiz() {
+  quizSection.style.display = 'block';
+  showQuestion();
+}
+
+async function loadConfig() {
+  try {
+    const res = await fetch('../data/config.yaml');
+    const yamlText = await res.text();
+    const loadedConfig = jsyaml.load(yamlText);
+    Object.assign(config, loadedConfig);
+  } catch (e) {
+    console.warn('config.yaml 読み込み失敗。デフォルト設定を使用します。');
+  }
+}
+
+async function loadCSV() {
+  const res = await fetch('../data/questions.csv');
+  const text = await res.text();
+  parseCSV(text);
+  if (config.shuffle_questions) shuffle(questions);
+}
+
 function parseCSV(text) {
-    const lines = text.split('\n').map(line => line.trim()).filter(line => line);
-    for (let i = 0; i < lines.length; i += 5) {
-        const [qText, choice1, correct] = lines[i].split(',').map(s => s.trim());
-        const choice2 = lines[i + 1].split(',')[1].trim();
-        const choice3 = lines[i + 2].split(',')[1].trim();
-        const choice4 = lines[i + 3].split(',')[1].trim();
-        questions.push({
-            question: qText,
-            choices: [choice1, choice2, choice3, choice4],
-            correct: correct
-        });
-    }
+  const lines = text.split('\n').map(line => line.trim()).filter(line => line);
+  questions = [];
+
+  for (let i = 0; i + 3 < lines.length; i += 4) {
+    const qLine = lines[i].split(',').map(s => s.trim());
+    const opt2 = lines[i + 1].split(',')[1]?.trim() || '';
+    const opt3 = lines[i + 2].split(',')[1]?.trim() || '';
+    const opt4 = lines[i + 3].split(',')[1]?.trim() || '';
+    const media = qLine[4]?.trim() || '';
+
+    if (!qLine[0] || !qLine[1] || !qLine[2]) continue;
+
+    questions.push({
+      question: qLine[0],
+      choices: [qLine[1], opt2, opt3, opt4],
+      correct: qLine[2],
+      media: media
+    });
+  }
 }
 
 function showQuestion() {
-    clearInterval(timer);
-    timeLeft = 10;
-    timerElement.textContent = `残り時間: ${timeLeft}秒`;
-    timer = setInterval(() => {
-        timeLeft--;
-        timerElement.textContent = `残り時間: ${timeLeft}秒`;
-        if (timeLeft <= 0) {
-            clearInterval(timer);
-            resultElement.textContent = `時間切れ！ 正解: ${questions[currentIndex].correct}`;
-            nextButton.style.display = 'inline-block';
-        }
-    }, 1000);
+  if (!questions[currentIndex]) {
+    endQuiz();
+    return;
+  }
 
-    const currentQuestion = questions[currentIndex];
-    questionElement.textContent = currentQuestion.question;
-    choicesElement.innerHTML = '';
-    resultElement.textContent = '';
-    nextButton.style.display = 'none';
+  clearInterval(timer);
+  const q = questions[currentIndex];
+  timeLeft = config.time_limit;
+  timerDiv.textContent = `残り時間: ${timeLeft}秒`;
+  timer = setInterval(() => {
+    timeLeft--;
+    timerDiv.textContent = `残り時間: ${timeLeft}秒`;
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      feedbackDiv.textContent = `時間切れ！ 正解: ${q.correct}`;
+      nextBtn.style.display = 'inline-block';
+    }
+  }, 1000);
 
-    currentQuestion.choices.forEach(choice => {
-        const li = document.createElement('li');
-        li.textContent = choice;
-        li.addEventListener('click', () => handleAnswer(choice));
-        choicesElement.appendChild(li);
-    });
+  questionDiv.innerHTML = q.question;
+
+  if (config.enable_images && q.media.endsWith('.jpg')) {
+    questionDiv.innerHTML += `<br><img src="../${q.media}" style="max-width:100%;">`;
+  } else if (config.enable_audio && q.media.endsWith('.mp3')) {
+    questionDiv.innerHTML += `<br><audio controls src="../${q.media}"></audio>`;
+  }
+
+  choicesDiv.innerHTML = '';
+  feedbackDiv.textContent = '';
+  nextBtn.style.display = 'none';
+
+  q.choices.forEach(choice => {
+    const btn = document.createElement('button');
+    btn.textContent = choice;
+    btn.onclick = () => checkAnswer(choice);
+    choicesDiv.appendChild(btn);
+  });
+
+  scoreDiv.textContent = `スコア: ${score}`;
 }
 
-function handleAnswer(selected) {
-    clearInterval(timer);
-    const correct = questions[currentIndex].correct;
-    if (selected === correct) {
-        resultElement.textContent = '◯ 正解！';
-        score++;
-        scoreElement.textContent = score;
-    } else {
-        resultElement.textContent = `× 不正解！ 正解: ${correct}`;
-    }
-    nextButton.style.display = 'inline-block';
+function checkAnswer(selected) {
+  clearInterval(timer);
+  const q = questions[currentIndex];
+  if (selected === q.correct) {
+    feedbackDiv.textContent = '◯ 正解！';
+    score++;
+  } else {
+    feedbackDiv.textContent = `× 不正解！ 正解: ${q.correct}`;
+  }
+  scoreDiv.textContent = `スコア: ${score}`;
+  nextBtn.style.display = 'inline-block';
 }
 
-nextButton.addEventListener('click', () => {
-    currentIndex++;
-    if (currentIndex < questions.length) {
-        showQuestion();
-    } else {
-        questionElement.textContent = '終了！お疲れさまでした';
-        choicesElement.innerHTML = '';
-        resultElement.textContent = `最終スコア: ${score} / ${questions.length}`;
-        timerElement.textContent = '';
-        nextButton.style.display = 'none';
-    }
+nextBtn.addEventListener('click', () => {
+  currentIndex++;
+  showQuestion();
 });
 
-pauseButton.addEventListener('click', () => {
-    saveProgress();
-    alert('進捗を保存しました');
+pauseBtn.addEventListener('click', () => {
+  saveProgress();
+  alert('進捗を保存しました');
 });
 
 function saveProgress() {
-    localStorage.setItem('quizCurrentIndex', currentIndex);
-    localStorage.setItem('quizScore', score);
+  localStorage.setItem('quizCurrentIndex', currentIndex);
+  localStorage.setItem('quizScore', score);
 }
 
 function loadProgress() {
-    const savedIndex = parseInt(localStorage.getItem('quizCurrentIndex'));
-    const savedScore = parseInt(localStorage.getItem('quizScore'));
-    if (!isNaN(savedIndex)) currentIndex = savedIndex;
-    if (!isNaN(savedScore)) score = savedScore;
-    scoreElement.textContent = score;
+  const savedIndex = parseInt(localStorage.getItem('quizCurrentIndex'));
+  const savedScore = parseInt(localStorage.getItem('quizScore'));
+  if (!isNaN(savedIndex) && savedIndex < questions.length) {
+    currentIndex = savedIndex;
+  } else {
+    currentIndex = 0;
+  }
+  if (!isNaN(savedScore)) score = savedScore;
+  scoreDiv.textContent = score;
+}
+
+function clearProgress() {
+  localStorage.removeItem('quizCurrentIndex');
+  localStorage.removeItem('quizScore');
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+function endQuiz() {
+  questionDiv.textContent = '終了！お疲れさまでした';
+  choicesDiv.innerHTML = '';
+  feedbackDiv.textContent = `最終スコア: ${score} / ${questions.length}`;
+  timerDiv.textContent = '';
+  nextBtn.style.display = 'none';
+}
+
+function showMainButtons() {
+  document.getElementById('main-buttons').style.display = 'flex';
 }

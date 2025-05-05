@@ -1,0 +1,14 @@
+# 問題ごとの制限時間（秒）
+time_limit: 10
+
+# 出題順序をシャッフルするか
+shuffle_questions: false
+
+# テーマ設定（将来対応用: "light" or "dark"）
+theme: light
+
+# 画像付き問題を許可するか（true で画像を表示）
+enable_images: false
+
+# 音声付き問題を許可するか（true で音声プレイヤーを表示）
+enable_audio: false
