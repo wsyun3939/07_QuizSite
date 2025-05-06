@@ -9,9 +9,11 @@ let config = {
   enable_images: false,
   enable_audio: false
 };
+let selectedGenre = 'anime';
 
 const startBtn = document.getElementById('start-button');
 const resetBtn = document.getElementById('reset-button');
+const genreSelect = document.getElementById('genre-select');
 const quizSection = document.getElementById('quiz-section');
 const questionDiv = document.getElementById('question');
 const choicesDiv = document.getElementById('choices');
@@ -26,32 +28,37 @@ const restartBtn = document.getElementById('restart-button');
 
 window.addEventListener('DOMContentLoaded', async () => {
   await loadConfig();
+  showMainButtons();
+});
+
+resumeBtn.addEventListener('click', async () => {
+  modal.style.display = 'none';
+  selectedGenre = genreSelect.value;
+  await loadCSV();
+  loadProgress();
+  startQuiz();
+});
+
+restartBtn.addEventListener('click', async () => {
+  modal.style.display = 'none';
+  selectedGenre = genreSelect.value;
+  await loadCSV();
+  clearProgress();
+  startQuiz();
+});
+
+startBtn.addEventListener('click', async () => {
+  startBtn.style.display = 'none';
+  resetBtn.style.display = 'none';
+  selectedGenre = genreSelect.value;
   await loadCSV();
 
   const hasProgress = localStorage.getItem('quizCurrentIndex');
   if (hasProgress) {
     modal.style.display = 'flex';
   } else {
-    showMainButtons();
+    startQuiz();
   }
-});
-
-resumeBtn.addEventListener('click', () => {
-  modal.style.display = 'none';
-  loadProgress();
-  startQuiz();
-});
-
-restartBtn.addEventListener('click', () => {
-  modal.style.display = 'none';
-  clearProgress();
-  startQuiz();
-});
-
-startBtn.addEventListener('click', () => {
-  startBtn.style.display = 'none';
-  resetBtn.style.display = 'none';
-  startQuiz();
 });
 
 resetBtn.addEventListener('click', () => {
@@ -79,7 +86,8 @@ async function loadConfig() {
 }
 
 async function loadCSV() {
-  const res = await fetch('../data/questions.csv');
+  const csvPath = `../data/${selectedGenre}.csv`;
+  const res = await fetch(csvPath);
   const text = await res.text();
   parseCSV(text);
   if (config.shuffle_questions) shuffle(questions);
@@ -175,11 +183,14 @@ pauseBtn.addEventListener('click', () => {
 function saveProgress() {
   localStorage.setItem('quizCurrentIndex', currentIndex);
   localStorage.setItem('quizScore', score);
+  localStorage.setItem('quizGenre', selectedGenre);
 }
 
 function loadProgress() {
   const savedIndex = parseInt(localStorage.getItem('quizCurrentIndex'));
   const savedScore = parseInt(localStorage.getItem('quizScore'));
+  const savedGenre = localStorage.getItem('quizGenre');
+  if (savedGenre) selectedGenre = savedGenre;
   if (!isNaN(savedIndex) && savedIndex < questions.length) {
     currentIndex = savedIndex;
   } else {
@@ -192,6 +203,7 @@ function loadProgress() {
 function clearProgress() {
   localStorage.removeItem('quizCurrentIndex');
   localStorage.removeItem('quizScore');
+  localStorage.removeItem('quizGenre');
 }
 
 function shuffle(arr) {

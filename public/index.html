@@ -11,6 +11,11 @@
     <h1>クイズサイト</h1>
 
     <div class="button-group" id="main-buttons">
+      <select id="genre-select">
+        <option value="anime">アニメ</option>
+        <option value="history">歴史</option>
+        <option value="science">科学</option>
+      </select>
       <button id="start-button">▶ スタート</button>
       <button id="reset-button" class="danger">🔄 進捗リセット</button>
     </div>
@@ -26,7 +31,6 @@
     </div>
   </div>
 
-  <!-- モーダル（開始選択） -->
   <div id="start-modal" class="modal">
     <div class="modal-content">
       <h2>前回の続きがあります</h2>
