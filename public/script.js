@@ -1,3 +1,4 @@
+// script.js
 let questions = [];
 let currentIndex = 0;
 let score = 0;
@@ -9,11 +10,13 @@ let config = {
   enable_images: false,
   enable_audio: false
 };
-let selectedGenre = 'anime';
+let selectedGenre = '';
+let selectedLevel = '';
 
 const startBtn = document.getElementById('start-button');
 const resetBtn = document.getElementById('reset-button');
 const genreSelect = document.getElementById('genre-select');
+const levelSelect = document.getElementById('level-select');
 const quizSection = document.getElementById('quiz-section');
 const questionDiv = document.getElementById('question');
 const choicesDiv = document.getElementById('choices');
@@ -25,6 +28,7 @@ const pauseBtn = document.getElementById('pause-button');
 const modal = document.getElementById('start-modal');
 const resumeBtn = document.getElementById('resume-button');
 const restartBtn = document.getElementById('restart-button');
+const mainButtons = document.getElementById('main-buttons');
 
 window.addEventListener('DOMContentLoaded', async () => {
   await loadConfig();
@@ -33,27 +37,24 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 resumeBtn.addEventListener('click', async () => {
   modal.style.display = 'none';
-  selectedGenre = genreSelect.value;
-  await loadCSV();
   loadProgress();
+  await loadCSV();
   startQuiz();
 });
 
 restartBtn.addEventListener('click', async () => {
   modal.style.display = 'none';
-  selectedGenre = genreSelect.value;
-  await loadCSV();
   clearProgress();
+  await loadCSV();
   startQuiz();
 });
 
 startBtn.addEventListener('click', async () => {
-  startBtn.style.display = 'none';
-  resetBtn.style.display = 'none';
   selectedGenre = genreSelect.value;
+  selectedLevel = levelSelect.value;
   await loadCSV();
-
-  const hasProgress = localStorage.getItem('quizCurrentIndex');
+  const progressKey = getProgressKey();
+  const hasProgress = localStorage.getItem(`${progressKey}_index`);
   if (hasProgress) {
     modal.style.display = 'flex';
   } else {
@@ -70,6 +71,7 @@ resetBtn.addEventListener('click', () => {
 });
 
 function startQuiz() {
+  mainButtons.style.display = 'none';
   quizSection.style.display = 'block';
   showQuestion();
 }
@@ -86,7 +88,9 @@ async function loadConfig() {
 }
 
 async function loadCSV() {
-  const csvPath = `../data/${selectedGenre}.csv`;
+  selectedGenre = genreSelect.value;
+  selectedLevel = levelSelect.value;
+  const csvPath = `../data/${selectedGenre}/MCQ_${selectedLevel}.csv`;
   const res = await fetch(csvPath);
   const text = await res.text();
   parseCSV(text);
@@ -96,16 +100,13 @@ async function loadCSV() {
 function parseCSV(text) {
   const lines = text.split('\n').map(line => line.trim()).filter(line => line);
   questions = [];
-
   for (let i = 0; i + 3 < lines.length; i += 4) {
     const qLine = lines[i].split(',').map(s => s.trim());
     const opt2 = lines[i + 1].split(',')[1]?.trim() || '';
     const opt3 = lines[i + 2].split(',')[1]?.trim() || '';
     const opt4 = lines[i + 3].split(',')[1]?.trim() || '';
     const media = qLine[4]?.trim() || '';
-
     if (!qLine[0] || !qLine[1] || !qLine[2]) continue;
-
     questions.push({
       question: qLine[0],
       choices: [qLine[1], opt2, opt3, opt4],
@@ -120,7 +121,6 @@ function showQuestion() {
     endQuiz();
     return;
   }
-
   clearInterval(timer);
   const q = questions[currentIndex];
   timeLeft = config.time_limit;
@@ -134,26 +134,21 @@ function showQuestion() {
       nextBtn.style.display = 'inline-block';
     }
   }, 1000);
-
   questionDiv.innerHTML = q.question;
-
   if (config.enable_images && q.media.endsWith('.jpg')) {
     questionDiv.innerHTML += `<br><img src="../${q.media}" style="max-width:100%;">`;
   } else if (config.enable_audio && q.media.endsWith('.mp3')) {
     questionDiv.innerHTML += `<br><audio controls src="../${q.media}"></audio>`;
   }
-
   choicesDiv.innerHTML = '';
   feedbackDiv.textContent = '';
   nextBtn.style.display = 'none';
-
   q.choices.forEach(choice => {
     const btn = document.createElement('button');
     btn.textContent = choice;
     btn.onclick = () => checkAnswer(choice);
     choicesDiv.appendChild(btn);
   });
-
   scoreDiv.textContent = `スコア: ${score}`;
 }
 
@@ -178,32 +173,35 @@ nextBtn.addEventListener('click', () => {
 pauseBtn.addEventListener('click', () => {
   saveProgress();
   alert('進捗を保存しました');
+  quizSection.style.display = 'none';
+  mainButtons.style.display = 'flex';
 });
 
 function saveProgress() {
-  localStorage.setItem('quizCurrentIndex', currentIndex);
-  localStorage.setItem('quizScore', score);
-  localStorage.setItem('quizGenre', selectedGenre);
+  const key = getProgressKey();
+  localStorage.setItem(`${key}_index`, currentIndex);
+  localStorage.setItem(`${key}_score`, score);
 }
 
 function loadProgress() {
-  const savedIndex = parseInt(localStorage.getItem('quizCurrentIndex'));
-  const savedScore = parseInt(localStorage.getItem('quizScore'));
-  const savedGenre = localStorage.getItem('quizGenre');
-  if (savedGenre) selectedGenre = savedGenre;
-  if (!isNaN(savedIndex) && savedIndex < questions.length) {
-    currentIndex = savedIndex;
-  } else {
-    currentIndex = 0;
-  }
-  if (!isNaN(savedScore)) score = savedScore;
+  const key = getProgressKey();
+  currentIndex = parseInt(localStorage.getItem(`${key}_index`)) || 0;
+  score = parseInt(localStorage.getItem(`${key}_score`)) || 0;
+  selectedGenre = localStorage.getItem('quizGenre') || genreSelect.value;
+  selectedLevel = localStorage.getItem('quizLevel') || levelSelect.value;
+  genreSelect.value = selectedGenre;
+  levelSelect.value = selectedLevel;
   scoreDiv.textContent = score;
 }
 
 function clearProgress() {
-  localStorage.removeItem('quizCurrentIndex');
-  localStorage.removeItem('quizScore');
-  localStorage.removeItem('quizGenre');
+  const key = getProgressKey();
+  localStorage.removeItem(`${key}_index`);
+  localStorage.removeItem(`${key}_score`);
+}
+
+function getProgressKey() {
+  return `progress_${genreSelect.value}_${levelSelect.value}`;
 }
 
 function shuffle(arr) {
@@ -222,5 +220,5 @@ function endQuiz() {
 }
 
 function showMainButtons() {
-  document.getElementById('main-buttons').style.display = 'flex';
+  mainButtons.style.display = 'flex';
 }

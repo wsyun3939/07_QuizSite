@@ -76,7 +76,6 @@ button.danger:hover {
   font-weight: bold;
 }
 
-/* モーダル */
 .modal {
   display: none;
   position: fixed;
