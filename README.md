@@ -57,6 +57,21 @@ enable_audio: false        # 音声付き問題を有効にするか
 4. クイズを解き進める
 5. 中断したい場合は「中断する」→再開時はモーダルから続き選択
 
+## 🌐 他端末（iPad/iPhone等）でアクセスするには（ngrok使用）
+
+1. 以下でローカルサーバーを起動：
+   ```bash
+   python3 -m http.server 8000 --bind 0.0.0.0
+   ```
+
+2. ngrok でローカルポート8000を外部公開：
+   ```bash
+   ngrok http 8000
+   ```
+
+3. 表示された `Forwarding` のURLを、iPadや他の端末のブラウザで開く：
+   例：`https://xxxxxx.ngrok-free.app`
+
 ## 💾 進捗保存仕様
 
 - `localStorage` に `progress_{genre}_{level}` 形式で保存：
