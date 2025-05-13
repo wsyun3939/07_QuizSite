@@ -20,6 +20,10 @@
         <option value="humanities">文系学問</option>
         <option value="science">理系学問</option>
       </select>
+      <select id="type-select">
+        <option value="MCQ">4択問題</option>
+        <option value="GROUP">グループ分け問題</option>
+      </select>
       <select id="level-select">
         <option value="1">☆1</option>
         <option value="2">☆2</option>
@@ -29,16 +33,6 @@
       </select>
       <button id="start-button">▶ スタート</button>
       <button id="reset-button" class="danger">🔄 進捗リセット</button>
-    </div>
-
-    <div id="quiz-section" style="display: none;">
-      <div id="question"></div>
-      <div id="choices"></div>
-      <div id="feedback"></div>
-      <div id="score">スコア: 0</div>
-      <div id="timer">残り時間: 10秒</div>
-      <button id="next-button" style="display: none;">次の問題へ</button>
-      <button id="pause-button">⏸ 中断する</button>
     </div>
 
   </div>

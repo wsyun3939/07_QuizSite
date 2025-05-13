@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>4択クイズ</title>
+  <link rel="stylesheet" href="mcq_quiz.css" />
+</head>
+<body>
+  <div class="quiz-container">
+    <h1>4択クイズ</h1>
+    <div id="quiz-section">
+      <div id="question" class="question-box"></div>
+      <div id="choices" class="choices-box"></div>
+      <div id="feedback" class="feedback"></div>
+      <div id="score" class="score">スコア: 0</div>
+      <div id="timer" class="timer">残り時間: 10秒</div>
+      <div class="buttons">
+        <button id="next-button" style="display: none;">次の問題へ</button>
+        <button id="pause-button">⏸ 中断する</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="mcq_quiz.js"></script>
+</body>
+</html>

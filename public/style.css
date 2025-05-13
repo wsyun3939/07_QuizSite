@@ -1,102 +1,125 @@
+/* 全体レイアウト */
 body {
-  font-family: sans-serif;
-  background: #f4f4f4;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 100vh;
+  font-family: 'Helvetica Neue', sans-serif;
   margin: 0;
-  padding: 40px;
+  padding: 0;
+  background-color: #f8f8f8;
+  color: #333;
 }
 
 .quiz-container {
-  background: #ffffff;
+  max-width: 600px;
+  margin: 60px auto;
+  padding: 40px;
+  background: #fff;
   border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  max-width: 500px;
-  width: 100%;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   text-align: center;
 }
 
-.button-group {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
+/* タイトル */
+.quiz-container h1 {
+  font-size: 28px;
+  margin-bottom: 30px;
 }
 
-select {
-  padding: 8px;
+/* ボタン群 */
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.button-group select,
+.button-group button {
+  padding: 10px 16px;
   font-size: 16px;
   border-radius: 6px;
   border: 1px solid #ccc;
 }
 
-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  border: none;
-  border-radius: 6px;
-  background-color: #3498db;
+.button-group select:focus,
+.button-group button:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.button-group button {
+  background-color: #007bff;
   color: white;
+  border: none;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.25s;
 }
 
-button:hover {
-  background-color: #2980b9;
+.button-group button:hover {
+  background-color: #0056b3;
 }
 
-button.danger {
-  background-color: #e74c3c;
+/* 危険な操作（進捗リセット）ボタン */
+.button-group .danger {
+  background-color: #dc3545;
 }
 
-button.danger:hover {
-  background-color: #c0392b;
+.button-group .danger:hover {
+  background-color: #a71d2a;
 }
 
-#choices button {
-  display: block;
-  width: 100%;
-  margin: 10px 0;
-}
-
-#feedback {
-  margin-top: 15px;
-  font-weight: bold;
-  font-size: 18px;
-}
-
-#score,
-#timer {
-  margin-top: 10px;
-  font-weight: bold;
-}
-
+/* モーダル表示 */
 .modal {
   display: none;
   position: fixed;
-  top: 0;
+  z-index: 10;
   left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.4);
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
+/* モーダル内容 */
 .modal-content {
-  background-color: white;
-  padding: 20px;
-  border-radius: 10px;
+  background-color: #fff;
+  margin: 15% auto;
+  padding: 30px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
   text-align: center;
-  max-width: 300px;
 }
 
 .modal-content h2 {
-  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 22px;
+}
+
+.modal-content p {
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.modal-content button {
+  margin: 0 10px;
+  padding: 10px 16px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.modal-content button.danger {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.modal-content button:not(.danger) {
+  background-color: #28a745;
+  color: white;
+}
+
+.modal-content button:hover {
+  opacity: 0.9;
 }
