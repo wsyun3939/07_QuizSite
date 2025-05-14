@@ -1,28 +1,73 @@
 let quizzes = [];
 let currentQuizIndex = 0;
+let score = 0;
+
+const params = new URLSearchParams(location.search);
+const genre = params.get("genre");
+const level = params.get("level");
+const type = "GROUP"; // 固定でOK
 
 window.addEventListener("DOMContentLoaded", () => {
-  const params = new URLSearchParams(location.search);
-  const genre = params.get("genre");
-  const level = params.get("level");
-
   if (genre && level) {
     const csvPath = `../../data/${genre}/GROUP_${level}.csv`;
     fetch(csvPath)
-      .then(res => {
-        if (!res.ok) throw new Error(`CSVファイルが見つかりません: ${csvPath}`);
-        return res.text();
-      })
+      .then(res => res.text())
       .then(text => {
-        const lines = text.split("\n").map(line => line.trim()).filter(l => l);
+        const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
         quizzes = parseQuizzes(lines);
-        currentQuizIndex = 0;
-        showQuiz(quizzes[currentQuizIndex]);
-      })
-      .catch(err => {
-        alert(`CSVの読み込みに失敗しました。\n${err.message}`);
+
+        const key = getProgressKey();
+        const hasProgress = localStorage.getItem(`${key}_index`);
+
+        if (hasProgress) {
+          document.getElementById("modal").style.display = "flex";
+        } else {
+          showQuiz(quizzes[0]);
+        }
       });
   }
+});
+
+function getProgressKey() {
+  return `progress_${genre}_${type}_${level}`;
+}
+
+function saveProgress() {
+  const key = getProgressKey();
+  localStorage.setItem(`${key}_index`, currentQuizIndex);
+  localStorage.setItem(`${key}_score`, score);
+}
+
+function loadProgress() {
+  const key = getProgressKey();
+  currentQuizIndex = parseInt(localStorage.getItem(`${key}_index`) || "0");
+  score = parseInt(localStorage.getItem(`${key}_score`) || "0");
+}
+
+function clearProgress() {
+  const key = getProgressKey();
+  localStorage.removeItem(`${key}_index`);
+  localStorage.removeItem(`${key}_score`);
+}
+
+document.getElementById("pauseBtn").addEventListener("click", () => {
+  saveProgress();
+  alert("進捗を保存しました。");
+  location.reload(); // または非表示にするなど
+});
+
+document.getElementById("resumeBtn").addEventListener("click", () => {
+  modal.style.display = "none";
+  loadProgress();
+  showQuiz(quizzes[currentQuizIndex]);
+});
+
+document.getElementById("restartBtn").addEventListener("click", () => {
+  modal.style.display = "none";
+  clearProgress();
+  currentQuizIndex = 0;
+  score = 0;
+  showQuiz(quizzes[currentQuizIndex]);
 });
 
 
@@ -91,6 +136,8 @@ function showQuiz(groupSet) {
   checkBtn.textContent = "答え合わせ";
   checkBtn.onclick = () => {
     const result = checkAnswer(groupSet);
+    if (result.correct) score++;
+    saveProgress();
     message.textContent = result.correct
       ? "正解！"
       : `不正解…（${result.total}中${result.correctCount}正解）`;

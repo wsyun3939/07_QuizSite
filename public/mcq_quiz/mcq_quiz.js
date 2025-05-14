@@ -21,11 +21,35 @@ const level = params.get("level");
 window.addEventListener("DOMContentLoaded", async () => {
   try {
     await loadCSV();
+    loadProgress();  // startQuiz前に呼ぶ
     startQuiz();
   } catch (e) {
     alert("CSVの読み込みに失敗しました。");
   }
 });
+
+function getProgressKey() {
+  return `progress_${genre}_MCQ_${level}`;
+}
+
+function saveProgress() {
+  const key = getProgressKey();
+  localStorage.setItem(`${key}_index`, currentIndex);
+  localStorage.setItem(`${key}_score`, score);
+}
+
+function loadProgress() {
+  const key = getProgressKey();
+  currentIndex = parseInt(localStorage.getItem(`${key}_index`)) || 0;
+  score = parseInt(localStorage.getItem(`${key}_score`)) || 0;
+}
+
+function clearProgress() {
+  const key = getProgressKey();
+  localStorage.removeItem(`${key}_index`);
+  localStorage.removeItem(`${key}_score`);
+}
+
 
 async function loadCSV() {
   const path = `../../data/${genre}/MCQ_${level}.csv`;
@@ -109,8 +133,10 @@ nextBtn.addEventListener("click", () => {
 });
 
 pauseBtn.addEventListener("click", () => {
-  alert("中断機能は未実装です。");
+  saveProgress();
+  alert("進捗を保存しました");
 });
+
 
 function endQuiz() {
   questionDiv.textContent = '終了！お疲れさまでした';

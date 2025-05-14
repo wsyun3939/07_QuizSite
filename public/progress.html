@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>進捗一覧</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background-color: #f7f7f7;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    select, button {
+      font-size: 16px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .reset-all-btn {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .reset-all-btn:hover {
+      background-color: #a71d2a;
+    }
+    .back-btn {
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .back-btn:hover {
+      background-color: #5a6268;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+    .reset-btn {
+      background-color: #dc3545;
+      color: white;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .reset-btn:hover {
+      background-color: #a71d2a;
+    }
+  </style>
+</head>
+<body>
+  <h1>クイズ進捗一覧</h1>
+
+  <div class="controls">
+    <label for="genreFilter">ジャンルフィルター:</label>
+    <select id="genreFilter">
+      <option value="all">すべて</option>
+    </select>
+    <button class="reset-all-btn" id="resetAllBtn">🗑️ 全進捗をリセット</button>
+    <button class="back-btn" id="back-button">🏠 トップへ戻る</button>
+  </div>
+
+  <table id="progress-table">
+    <thead>
+      <tr>
+        <th>ジャンル</th>
+        <th>形式</th>
+        <th>難易度</th>
+        <th>現在の問題番号</th>
+        <th>スコア</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="table-body">
+      <!-- JSで生成 -->
+    </tbody>
+  </table>
+
+  <script>
+    const genres = [
+      'animeandgame', 'sports', 'lifestyle',
+      'entertainment', 'society', 'humanities', 'science'
+    ];
+    const genreNames = {
+      animeandgame: 'アニメandゲーム',
+      sports: 'スポーツ',
+      lifestyle: 'ライフスタイル',
+      entertainment: '芸能',
+      society: '社会',
+      humanities: '文系学問',
+      science: '理系学問'
+    };
+    const types = ['MCQ', 'GROUP'];
+    const levels = [1, 2, 3, 4, 5];
+
+    const tableBody = document.getElementById('table-body');
+    const genreFilter = document.getElementById('genreFilter');
+
+    // プルダウンにジャンルを追加
+    genres.forEach(g => {
+      const opt = document.createElement("option");
+      opt.value = g;
+      opt.textContent = genreNames[g] || g;
+      genreFilter.appendChild(opt);
+    });
+
+    // テーブル更新
+    function updateTable() {
+      tableBody.innerHTML = '';
+      const selectedGenre = genreFilter.value;
+
+      genres.forEach(genre => {
+        types.forEach(type => {
+          levels.forEach(level => {
+            const keyBase = `progress_${genre}_${type}_${level}`;
+            const index = localStorage.getItem(`${keyBase}_index`);
+            const score = localStorage.getItem(`${keyBase}_score`);
+
+            if ((index !== null || score !== null) && (selectedGenre === 'all' || selectedGenre === genre)) {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td>${genreNames[genre] || genre}</td>
+                <td>${type}</td>
+                <td>${level}</td>
+                <td>${index ?? '-'}</td>
+                <td>${score ?? '-'}</td>
+                <td>
+                  <button class="reset-btn" onclick="resetProgress('${keyBase}')">リセット</button>
+                </td>
+              `;
+              tableBody.appendChild(tr);
+            }
+          });
+        });
+      });
+    }
+
+    function resetProgress(keyBase) {
+      if (confirm(`${keyBase} の進捗を削除しますか？`)) {
+        localStorage.removeItem(`${keyBase}_index`);
+        localStorage.removeItem(`${keyBase}_score`);
+        updateTable();
+      }
+    }
+
+    document.getElementById("resetAllBtn").addEventListener("click", () => {
+      if (confirm("全ジャンル・全形式・全レベルの進捗を削除しますか？")) {
+        genres.forEach(genre => {
+          types.forEach(type => {
+            levels.forEach(level => {
+              const keyBase = `progress_${genre}_${type}_${level}`;
+              localStorage.removeItem(`${keyBase}_index`);
+              localStorage.removeItem(`${keyBase}_score`);
+            });
+          });
+        });
+        updateTable();
+        alert("全進捗を削除しました。");
+      }
+    });
+
+    genreFilter.addEventListener("change", updateTable);
+    document.getElementById("back-button").addEventListener("click", () => {
+      window.location.href = "index.html";
+    });
+
+    updateTable();
+  </script>
+</body>
+</html>

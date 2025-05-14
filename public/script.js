@@ -14,3 +14,8 @@ startBtn.addEventListener('click', () => {
     window.location.href = `mcq_quiz/mcq_quiz.html?genre=${genre}&level=${level}`;
   }
 });
+
+document.getElementById("progress-button").addEventListener("click", () => {
+  window.location.href = "progress.html";
+});
+
