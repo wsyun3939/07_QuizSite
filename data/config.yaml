@@ -1,5 +1,5 @@
 # 問題ごとの制限時間（秒）
-time_limit: 10
+time_limit: 30
 
 # 出題順序をシャッフルするか
 shuffle_questions: false
