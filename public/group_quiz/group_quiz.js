@@ -2,12 +2,22 @@ let quizzes = [];
 let currentQuizIndex = 0;
 let score = 0;
 
+let config = { time_limit: 10 };
+let timer;
+let timeLeft = 0;
+
 const params = new URLSearchParams(location.search);
 const genre = params.get("genre");
 const level = params.get("level");
 const type = "GROUP"; // 固定でOK
 
-window.addEventListener("DOMContentLoaded", () => {
+const modal = document.getElementById("modal");
+const resumeBtn = document.getElementById("resumeBtn");
+const restartBtn = document.getElementById("restartBtn");
+
+window.addEventListener("DOMContentLoaded", async () => {
+  await loadConfig();
+
   if (genre && level) {
     const csvPath = `../../data/${genre}/GROUP_${level}.csv`;
     fetch(csvPath)
@@ -27,6 +37,16 @@ window.addEventListener("DOMContentLoaded", () => {
       });
   }
 });
+
+async function loadConfig() {
+  try {
+    const res = await fetch("../../data/config.yaml");
+    const text = await res.text();
+    config = jsyaml.load(text);
+  } catch (e) {
+    console.warn("config.yaml の読み込みに失敗しました。デフォルト値を使用します。");
+  }
+}
 
 function getProgressKey() {
   return `progress_${genre}_${type}_${level}`;
@@ -53,7 +73,7 @@ function clearProgress() {
 document.getElementById("pauseBtn").addEventListener("click", () => {
   saveProgress();
   alert("進捗を保存しました。");
-  location.reload(); // または非表示にするなど
+  window.location.href = "../index.html"; // スタートページへ戻る
 });
 
 document.getElementById("resumeBtn").addEventListener("click", () => {
@@ -95,9 +115,24 @@ function showQuiz(groupSet) {
   const container = document.getElementById("quizContainer");
   const message = document.getElementById("message");
   const nextBtn = document.getElementById("nextBtn");
+  const timerDiv = document.getElementById("timer");
+
+  clearInterval(timer);
   container.innerHTML = "";
   message.textContent = "";
   nextBtn.style.display = "none";
+
+  // タイマー初期化
+  timeLeft = config.time_limit || 10;
+  timerDiv.textContent = `残り時間: ${timeLeft}秒`;
+  timer = setInterval(() => {
+    timeLeft--;
+    timerDiv.textContent = `残り時間: ${timeLeft}秒`;
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      autoCheckAnswer(groupSet); // 時間切れで自動判定
+    }
+  }, 1000);
 
   const allItems = groupSet.flatMap(group => group.items);
   const shuffled = shuffle([...allItems]);
@@ -136,11 +171,18 @@ function showQuiz(groupSet) {
   checkBtn.textContent = "答え合わせ";
   checkBtn.onclick = () => {
     const result = checkAnswer(groupSet);
-    if (result.correct) score++;
-    saveProgress();
-    message.textContent = result.correct
-      ? "正解！"
-      : `不正解…（${result.total}中${result.correctCount}正解）`;
+
+    if (result.correct) {
+      message.innerHTML = "✅ 正解！";
+      score++;
+    } else {
+      message.innerHTML = `❌ 不正解…（${result.total}中${result.correctCount}正解）<br><br><strong>模範解答：</strong><br>`;
+      groupSet.forEach(group => {
+        message.innerHTML += `<strong>${group.name}</strong>: ${group.items.join("、")}<br>`;
+      });
+    }
+
+    saveProgress(); // ← 進捗保存している場合
     nextBtn.style.display = currentQuizIndex + 1 < quizzes.length ? "inline" : "none";
     checkBtn.disabled = true;
   };
@@ -171,6 +213,19 @@ function checkAnswer(groupSet) {
     });
   });
   return { correct: correctCount === total, correctCount, total };
+}
+
+function autoCheckAnswer(groupSet) {
+  const message = document.getElementById("message");
+  const result = checkAnswer(groupSet);
+
+  message.innerHTML = `⏰ 時間切れ！<br>（${result.total}中${result.correctCount}正解）<br><br><strong>模範解答：</strong><br>`;
+  groupSet.forEach(group => {
+    message.innerHTML += `<strong>${group.name}</strong>: ${group.items.join("、")}<br>`;
+  });
+
+  saveProgress();
+  document.getElementById("nextBtn").style.display = currentQuizIndex + 1 < quizzes.length ? "inline" : "none";
 }
 
 function shuffle(array) {

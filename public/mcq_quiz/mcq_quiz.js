@@ -18,14 +18,40 @@ const params = new URLSearchParams(window.location.search);
 const genre = params.get("genre");
 const level = params.get("level");
 
+const modal = document.getElementById("modal");
+const resumeBtn = document.getElementById("resumeBtn");
+const restartBtn = document.getElementById("restartBtn");
+
 window.addEventListener("DOMContentLoaded", async () => {
   try {
     await loadCSV();
     loadProgress();  // startQuiz前に呼ぶ
-    startQuiz();
+
+    const key = getProgressKey();
+    const hasProgress = localStorage.getItem(`${key}_index`);
+
+    if (hasProgress) {
+      document.getElementById("modal").style.display = "flex";
+    } else {
+      showQuiz(questions[0]);
+    }
   } catch (e) {
     alert("CSVの読み込みに失敗しました。");
   }
+});
+
+document.getElementById("resumeBtn").addEventListener("click", () => {
+  modal.style.display = "none";
+  loadProgress();
+  showQuiz(questions[currentIndex]);
+});
+
+document.getElementById("restartBtn").addEventListener("click", () => {
+  modal.style.display = "none";
+  clearProgress();
+  currentIndex = 0;
+  score = 0;
+  showQuiz(questions[currentIndex]);
 });
 
 function getProgressKey() {
@@ -76,18 +102,10 @@ function parseCSV(text) {
   }
 }
 
-function startQuiz() {
-  showQuestion();
-}
-
-function showQuestion() {
-  if (currentIndex >= questions.length) {
-    endQuiz();
-    return;
-  }
+function showQuiz(groupSet) {
 
   clearInterval(timer);
-  const q = questions[currentIndex];
+  const q = groupSet;
   questionDiv.innerHTML = q.question;
   choicesDiv.innerHTML = '';
   feedbackDiv.textContent = '';
@@ -129,12 +147,13 @@ function checkAnswer(selected) {
 
 nextBtn.addEventListener("click", () => {
   currentIndex++;
-  showQuestion();
+  showQuiz(questions[currentIndex]);
 });
 
 pauseBtn.addEventListener("click", () => {
   saveProgress();
   alert("進捗を保存しました");
+  window.location.href = "../index.html"; // スタートページへ戻る
 });
 
 
