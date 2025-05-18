@@ -1,9 +1,10 @@
 let questions = [];
 let currentIndex = 0;
 let score = 0;
+
+let config = { time_limit: 10 };
 let timer;
 let timeLeft = 10;
-const timeLimit = 10;
 
 const questionDiv = document.getElementById("question");
 const choicesDiv = document.getElementById("choices");
@@ -23,6 +24,8 @@ const resumeBtn = document.getElementById("resumeBtn");
 const restartBtn = document.getElementById("restartBtn");
 
 window.addEventListener("DOMContentLoaded", async () => {
+  await loadConfig();
+  
   try {
     await loadCSV();
     loadProgress();  // startQuiz前に呼ぶ
@@ -39,6 +42,16 @@ window.addEventListener("DOMContentLoaded", async () => {
     alert("CSVの読み込みに失敗しました。");
   }
 });
+
+async function loadConfig() {
+  try {
+    const res = await fetch("../../data/config.yaml");
+    const text = await res.text();
+    config = jsyaml.load(text);
+  } catch (e) {
+    console.warn("config.yaml の読み込みに失敗しました。デフォルト値を使用します。");
+  }
+}
 
 document.getElementById("resumeBtn").addEventListener("click", () => {
   modal.style.display = "none";
@@ -111,7 +124,7 @@ function showQuiz(groupSet) {
   feedbackDiv.textContent = '';
   nextBtn.style.display = 'none';
   scoreDiv.textContent = `スコア: ${score}`;
-  timeLeft = timeLimit;
+  timeLeft = config.time_limit || 10;;
   timerDiv.textContent = `残り時間: ${timeLeft}秒`;
 
   timer = setInterval(() => {

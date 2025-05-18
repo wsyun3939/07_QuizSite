@@ -52,6 +52,8 @@ def extract_grouping_problems(soup):
         if not cells or "グループ分けしなさい" not in cells[0].text:
             continue
 
+        question_text = cells[0].get_text(strip=True)
+
         groups = []
         for cell in cells[1:]:
             lines = cell.get_text("\n").strip().split("\n")
@@ -63,7 +65,8 @@ def extract_grouping_problems(soup):
                 groups.append([group_name] + items)
 
         if groups:
-            problems.append([["グループ数", str(len(groups))]] + groups)
+            problem = [[question_text], ["グループ数", str(len(groups))]] + groups
+            problems.append(problem)
 
     return problems
 

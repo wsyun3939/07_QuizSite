@@ -95,23 +95,22 @@ function parseQuizzes(lines) {
   const quizList = [];
   let i = 0;
   while (i < lines.length) {
-    if (lines[i].startsWith("グループ数")) {
-      const count = parseInt(lines[i].split(",")[1]);
-      i++;
-      const groupSet = [];
-      for (let j = 0; j < count && i < lines.length; j++, i++) {
-        const [groupName, ...items] = lines[i].split(",").map(x => x.trim());
-        groupSet.push({ name: groupName, items });
-      }
-      quizList.push(groupSet);
-    } else {
-      i++;
+    const question = lines[i++]; // 1行目：問題文
+    if (i >= lines.length || !lines[i].startsWith("グループ数")) continue;
+
+    const count = parseInt(lines[i++].split(",")[1]);
+    const groupSet = [];
+    for (let j = 0; j < count && i < lines.length; j++, i++) {
+      const [groupName, ...items] = lines[i].split(",").map(x => x.trim());
+      groupSet.push({ name: groupName, items });
     }
+    quizList.push({ question, groupSet });
   }
   return quizList;
 }
 
-function showQuiz(groupSet) {
+
+function showQuiz(quiz) {
   const container = document.getElementById("quizContainer");
   const message = document.getElementById("message");
   const nextBtn = document.getElementById("nextBtn");
@@ -130,13 +129,19 @@ function showQuiz(groupSet) {
     timerDiv.textContent = `残り時間: ${timeLeft}秒`;
     if (timeLeft <= 0) {
       clearInterval(timer);
-      autoCheckAnswer(groupSet); // 時間切れで自動判定
+      autoCheckAnswer(quiz.groupSet);
     }
   }, 1000);
 
-  const allItems = groupSet.flatMap(group => group.items);
-  const shuffled = shuffle([...allItems]);
+  // 問題文の表示
+  const questionDiv = document.createElement("div");
+  questionDiv.className = "question";
+  questionDiv.textContent = quiz.question;
+  container.appendChild(questionDiv);
 
+  // アイテム表示
+  const allItems = quiz.groupSet.flatMap(group => group.items);
+  const shuffled = shuffle([...allItems]);
   const itemArea = document.createElement("div");
   shuffled.forEach(item => {
     const div = document.createElement("div");
@@ -149,8 +154,9 @@ function showQuiz(groupSet) {
     itemArea.appendChild(div);
   });
 
+  // グループ領域表示
   const groupArea = document.createElement("div");
-  groupSet.forEach(group => {
+  quiz.groupSet.forEach(group => {
     const groupDiv = document.createElement("div");
     groupDiv.className = "group";
     groupDiv.dataset.name = group.name;
@@ -167,23 +173,23 @@ function showQuiz(groupSet) {
     groupArea.appendChild(groupDiv);
   });
 
+  // 答え合わせボタン
   const checkBtn = document.createElement("button");
   checkBtn.textContent = "答え合わせ";
   checkBtn.onclick = () => {
-    const result = checkAnswer(groupSet);
-
+    const result = checkAnswer(quiz.groupSet);
     if (result.correct) {
       message.innerHTML = "✅ 正解！";
       score++;
     } else {
       message.innerHTML = `❌ 不正解…（${result.total}中${result.correctCount}正解）<br><br><strong>模範解答：</strong><br>`;
-      groupSet.forEach(group => {
+      quiz.groupSet.forEach(group => {
         message.innerHTML += `<strong>${group.name}</strong>: ${group.items.join("、")}<br>`;
       });
     }
 
-    saveProgress(); // ← 進捗保存している場合
-    nextBtn.style.display = currentQuizIndex + 1 < quizzes.length ? "inline" : "none";
+    saveProgress();
+    nextBtn.style.display = "inline";
     checkBtn.disabled = true;
   };
 
@@ -194,12 +200,37 @@ function showQuiz(groupSet) {
   container.appendChild(checkBtn);
 }
 
+
 document.getElementById("nextBtn").addEventListener("click", () => {
   currentQuizIndex++;
   if (currentQuizIndex < quizzes.length) {
     showQuiz(quizzes[currentQuizIndex]);
+  } else {
+    showFinalResult(); // ← ここで総合結果表示
   }
 });
+
+function showFinalResult() {
+  const container = document.getElementById("quizContainer");
+  const message = document.getElementById("message");
+  const nextBtn = document.getElementById("nextBtn");
+  const pauseBtn = document.getElementById("pauseBtn");
+  const backToTopBtn = document.getElementById("backToTopBtn");
+  const timer = document.getElementById("timer");
+
+  container.innerHTML = "<h2>終了！お疲れさまでした</h2>";
+  message.innerHTML = `あなたのスコアは <strong>${score} / ${quizzes.length}</strong> です`;
+  clearInterval(timer);
+  timer.textContent = "";
+  nextBtn.style.display = "none";
+  pauseBtn.style.display = "none";
+
+  backToTopBtn.style.display = "flex";
+  document.getElementById("backToTopBtn").addEventListener("click", () => {
+    window.location.href = "../index.html";
+  });
+}
+
 
 function checkAnswer(groupSet) {
   let correctCount = 0;

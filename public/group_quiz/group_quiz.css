@@ -33,6 +33,13 @@ body {
   margin-top: 10px;
 }
 
+.question {
+  font-size: 18px;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+
 .modal {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
