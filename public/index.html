@@ -3,40 +3,66 @@
 <head>
   <meta charset="UTF-8" />
   <title>クイズサイト</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="quiz-container">
+  <header class="site-header">
     <h1>クイズサイト</h1>
+  </header>
 
-    <div class="button-group" id="main-buttons">
-      <select id="genre-select">
-        <option value="animeandgame">アニメandゲーム</option>
-        <option value="sports">スポーツ</option>
-        <option value="lifestyle">ライフスタイル</option>
-        <option value="entertainment">芸能</option>
-        <option value="society">社会</option>
-        <option value="humanities">文系学問</option>
-        <option value="science">理系学問</option>
-      </select>
-      <select id="type-select">
-        <option value="MCQ">4択問題</option>
-        <option value="GROUP">グループ分け問題</option>
-      </select>
-      <select id="level-select">
-        <option value="1">☆1</option>
-        <option value="2">☆2</option>
-        <option value="3">☆3</option>
-        <option value="4">☆4</option>
-        <option value="5">☆5</option>
-      </select>
-      <button id="start-button">▶ スタート</button>
-      <button id="reset-button" class="danger">🔄 進捗リセット</button>
-      <button id="progress-button">📊 進捗一覧</button>
-    </div>
+  <main class="quiz-container" id="main">
+    <section class="controls">
+      <div class="button-group" id="main-buttons" role="group" aria-label="クイズ設定">
+        <div class="control">
+          <label for="genre-select">ジャンル</label>
+          <select id="genre-select" name="genre" autocomplete="off">
+            <option value="animeandgame">アニメandゲーム</option>
+            <option value="sports">スポーツ</option>
+            <option value="lifestyle">ライフスタイル</option>
+            <option value="entertainment">芸能</option>
+            <option value="society">社会</option>
+            <option value="humanities">文系学問</option>
+            <option value="science">理系学問</option>
+          </select>
+        </div>
 
-  </div>
+        <div class="control">
+          <label for="type-select">形式</label>
+          <select id="type-select" name="type" autocomplete="off">
+            <option value="MCQ">4択問題</option>
+            <option value="GROUP">グループ分け問題</option>
+          </select>
+        </div>
 
-  <script src="script.js"></script>
+        <div class="control">
+          <label for="level-select">難易度</label>
+          <select id="level-select" name="level" autocomplete="off">
+            <option value="1">☆1</option>
+            <option value="2">☆2</option>
+            <option value="3">☆3</option>
+            <option value="4">☆4</option>
+            <option value="5">☆5</option>
+          </select>
+        </div>
+
+        <div class="control buttons">
+          <button id="start-button" type="button">▶ スタート</button>
+          <button id="reset-button" type="button" class="danger">🔄 進捗リセット</button>
+          <button id="progress-button" type="button">📊 進捗一覧</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ステータス/エラーメッセージの読み上げ・即時反映用（script.jsからテキスト挿入） -->
+    <div id="status" aria-live="polite" class="sr-only"></div>
+
+    <noscript>
+      <p>このサイトはJavaScriptを使用します。ブラウザの設定で有効にしてください。</p>
+    </noscript>
+  </main>
+
+  <script src="script.js" defer></script>
 </body>
 </html>

@@ -1,30 +1,67 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>グループ分けクイズ</title>
-  <link rel="stylesheet" href="group_quiz.css">
-  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="stylesheet" href="group_quiz.css" />
 </head>
 <body>
-  <h1>グループ分けクイズ</h1>
-  <div id="quizContainer"></div>
-  <div id="message"></div>
-  <div id="timer" style="margin-top: 10px; font-weight: bold;"></div>
-  <button id="nextBtn">次の問題へ</button>
+  <header class="site-header">
+    <h1>グループ分けクイズ</h1>
+  </header>
 
-  <div id="modal" class="modal" style="display: none;">
-    <div class="modal-content">
-      <h2>前回の続きがあります</h2>
-      <p>続きから始めますか？</p>
-      <button id="resumeBtn">▶ 続きから</button>
-      <button id="restartBtn" class="danger">🔁 最初から</button>
+  <main class="quiz-container" id="main">
+    <section id="quiz-section" aria-labelledby="section-title">
+      <h2 id="section-title" class="sr-only">問題と操作</h2>
+
+      <!-- 問題UIをJSで生成：箱だけ用意 -->
+      <div id="quizContainer" aria-live="polite"></div>
+
+      <!-- フィードバック -->
+      <div id="message" role="status" aria-live="polite"></div>
+
+      <!-- タイマー＋操作 -->
+      <div class="hud">
+        <div id="timer" class="timer" aria-live="polite"></div>
+      </div>
+
+      <div class="buttons">
+        <button id="nextBtn" type="button" hidden>次の問題へ</button>
+        <button id="pauseBtn" type="button">⏸ 中断する</button>
+        <button id="backToTopBtn" type="button" class="back-btn" hidden>🏠 トップページに戻る</button>
+      </div>
+
+      <!-- （任意）ショートカットや操作ガイド -->
+      <p class="hint" aria-hidden="true">※ ドラッグ＆ドロップ / クリックでグループ移動。決定後に「次の問題へ」</p>
+    </section>
+  </main>
+
+  <!-- 再開モーダル -->
+  <div id="modal" class="modal" hidden>
+    <div
+      class="modal-content"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+      aria-describedby="modal-desc"
+    >
+      <h2 id="modal-title">前回の続きがあります</h2>
+      <p id="modal-desc">続きから始めますか？</p>
+      <div class="modal-actions">
+        <button id="resumeBtn" type="button">▶ 続きから</button>
+        <button id="restartBtn" type="button" class="danger">🔁 最初から</button>
+      </div>
     </div>
   </div>
 
-  <button id="pauseBtn">⏸ 中断する</button>
-  <button id="backToTopBtn" class="back-btn" style="display: none;">🏠 トップページに戻る</button>
+  <noscript>
+    <p style="text-align:center; margin-top:16px;">このページはJavaScriptを使用します。ブラウザの設定で有効にしてください。</p>
+  </noscript>
 
-  <script src="group_quiz.js"></script>
+  <!-- 依存 → 本体（deferで順序保証） -->
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" defer></script>
+  <script src="group_quiz.js" defer></script>
 </body>
 </html>

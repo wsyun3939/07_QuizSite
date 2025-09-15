@@ -3,34 +3,66 @@
 <head>
   <meta charset="UTF-8" />
   <title>4択クイズ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
   <link rel="stylesheet" href="mcq_quiz.css" />
-  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
 </head>
 <body>
-  <div class="quiz-container">
+  <header class="site-header">
     <h1>4択クイズ</h1>
-    <div id="quiz-section">
-      <div id="question" class="question-box"></div>
-      <div id="choices" class="choices-box"></div>
-      <div id="feedback" class="feedback"></div>
-      <div id="score" class="score">スコア: 0</div>
-      <div id="timer" class="timer"></div>
+  </header>
+
+  <main class="quiz-container" id="main">
+    <section id="quiz-section" aria-labelledby="question-title">
+      <!-- 問題文 -->
+      <h2 id="question-title" class="sr-only">問題</h2>
+      <div id="question" class="question-box" aria-live="polite"></div>
+
+      <!-- 選択肢 -->
+      <div id="choices" class="choices-box" role="group" aria-label="選択肢（1～4キーでも選択可能）"></div>
+
+      <!-- フィードバック/スコア/タイマー -->
+      <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
+      <div class="hud">
+        <div id="score" class="score" aria-live="polite">スコア: 0</div>
+        <div id="timer" class="timer" aria-live="polite"></div>
+      </div>
+
+      <!-- 操作ボタン -->
       <div class="buttons">
-        <button id="next-button" style="display: none;">次の問題へ</button>
-        <button id="pause-button">⏸ 中断する</button>
+        <button id="next-button" type="button" hidden>次の問題へ</button>
+        <button id="pause-button" type="button">⏸ 中断する</button>
+      </div>
+
+      <!-- ショートカットのヒント（任意でCSSで小さく） -->
+      <p class="hint" aria-hidden="true">※ キー操作：<kbd>1</kbd>〜<kbd>4</kbd> で選択、<kbd>Enter</kbd> で次へ</p>
+    </section>
+  </main>
+
+  <!-- 再開モーダル -->
+  <div id="modal" class="modal" hidden>
+    <div
+      class="modal-content"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+      aria-describedby="modal-desc"
+    >
+      <h2 id="modal-title">前回の続きがあります</h2>
+      <p id="modal-desc">続きから始めますか？</p>
+      <div class="modal-actions">
+        <button id="resumeBtn" type="button">▶ 続きから</button>
+        <button id="restartBtn" type="button" class="danger">🔁 最初から</button>
       </div>
     </div>
   </div>
 
-  <div id="modal" class="modal" style="display: none;">
-    <div class="modal-content">
-      <h2>前回の続きがあります</h2>
-      <p>続きから始めますか？</p>
-      <button id="resumeBtn">▶ 続きから</button>
-      <button id="restartBtn" class="danger">🔁 最初から</button>
-    </div>
-  </div>
+  <noscript>
+    <p style="text-align:center; margin-top:16px;">このページはJavaScriptを使用します。ブラウザの設定で有効にしてください。</p>
+  </noscript>
 
-  <script src="mcq_quiz.js"></script>
+  <!-- 依存 → 本体（deferで順序保証） -->
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" defer></script>
+  <script src="mcq_quiz.js" defer></script>
 </body>
 </html>

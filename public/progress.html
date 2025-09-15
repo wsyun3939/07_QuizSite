@@ -3,79 +3,89 @@
 <head>
   <meta charset="UTF-8" />
   <title>進捗一覧</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
   <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-      background-color: #f7f7f7;
+    :root{
+      --bg:#f7f7f7; --panel:#fff; --text:#333; --muted:#666;
+      --border:#dcdcdc; --ring:#80bfff;
+      --primary:#0d6efd; --primary-600:#0b5ed7;
+      --danger:#dc3545; --danger-600:#bb2d3b;
+      --gray:#6c757d; --gray-600:#5a6268;
+      --radius:10px; --shadow:0 4px 15px rgba(0,0,0,.08);
     }
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#0f1115; --panel:#171a21; --text:#e8eaf0; --muted:#aab1c6;
+        --border:#2a2f3a; --ring:#5ab0ff;
+        --shadow:0 6px 20px rgba(0,0,0,.35);
+      }
     }
-    .controls {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
+
+    *{box-sizing:border-box}
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto,
+                   "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+      margin:0; padding:20px; background:var(--bg); color:var(--text);
     }
-    select, button {
-      font-size: 16px;
-      padding: 6px 12px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
+    h1{ text-align:center; margin: 8px 0 20px; letter-spacing:.02em; }
+
+    .controls{
+      display:flex; justify-content:center; align-items:center; gap:12px;
+      margin: 0 auto 18px; flex-wrap: wrap; max-width: 1000px;
     }
-    .reset-all-btn {
-      background-color: #dc3545;
-      color: white;
-      border: none;
-      cursor: pointer;
+    select, button{
+      font-size:16px; padding:8px 12px; border-radius:8px;
+      border:1px solid var(--border); background:#fff; color:var(--text);
+      min-height:40px;
     }
-    .reset-all-btn:hover {
-      background-color: #a71d2a;
+    @media (prefers-color-scheme: dark){ select{ background:#151a24; } }
+    select:focus-visible, button:focus-visible{
+      outline:3px solid var(--ring); outline-offset:2px;
     }
-    .back-btn {
-      background-color: #6c757d;
-      color: white;
-      border: none;
-      cursor: pointer;
+
+    .reset-all-btn{ background:var(--danger); color:#fff; border:none; cursor:pointer; }
+    .reset-all-btn:hover{ background:var(--danger-600); }
+    .back-btn{ background:var(--gray); color:#fff; border:none; cursor:pointer; }
+    .back-btn:hover{ background:var(--gray-600); }
+
+    .table-wrap{
+      background: var(--panel); border:1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      overflow:auto;  /* 横スクロール対応 */
     }
-    .back-btn:hover {
-      background-color: #5a6268;
+    table{ width:100%; border-collapse: collapse; min-width: 720px; }
+    th, td{ border-bottom:1px solid var(--border); padding:10px; text-align:center; }
+    thead th{
+      position: sticky; top: 0; z-index: 1;
+      background: var(--primary); color:#fff; text-align:center;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
+    tbody tr:nth-child(even){ background: rgba(0,0,0,.03); }
+    @media (prefers-color-scheme: dark){
+      tbody tr:nth-child(even){ background: rgba(255,255,255,.03); }
     }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
-      text-align: center;
+
+    .reset-btn{
+      background: var(--danger); color:#fff; border:none; border-radius:6px;
+      padding:6px 10px; cursor:pointer;
     }
-    th {
-      background-color: #007bff;
-      color: white;
+    .reset-btn:hover{ background: var(--danger-600); }
+
+    .summary{
+      max-width:1000px; margin:12px auto 0; color: var(--muted); font-size:14px;
+      display:flex; gap:12px; justify-content:center; flex-wrap:wrap;
     }
-    .reset-btn {
-      background-color: #dc3545;
-      color: white;
-      padding: 6px 12px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .reset-btn:hover {
-      background-color: #a71d2a;
+
+    .sr-only{
+      position:absolute!important; width:1px; height:1px; padding:0; margin:-1px;
+      overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
     }
   </style>
 </head>
 <body>
   <h1>クイズ進捗一覧</h1>
 
-  <div class="controls">
+  <div class="controls" role="group" aria-label="進捗操作">
     <label for="genreFilter">ジャンルフィルター:</label>
     <select id="genreFilter">
       <option value="all">すべて</option>
@@ -84,111 +94,173 @@
     <button class="back-btn" id="back-button">🏠 トップへ戻る</button>
   </div>
 
-  <table id="progress-table">
-    <thead>
-      <tr>
-        <th>ジャンル</th>
-        <th>形式</th>
-        <th>難易度</th>
-        <th>現在の問題番号</th>
-        <th>スコア</th>
-        <th>操作</th>
-      </tr>
-    </thead>
-    <tbody id="table-body">
-      <!-- JSで生成 -->
-    </tbody>
-  </table>
+  <div class="table-wrap">
+    <table id="progress-table" aria-describedby="table-caption">
+      <caption id="table-caption" class="sr-only">保存されている各カテゴリの進捗一覧</caption>
+      <thead>
+        <tr>
+          <th>ジャンル</th>
+          <th>形式</th>
+          <th>難易度</th>
+          <th>現在の問題番号</th>
+          <th>スコア</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+        <!-- JSで生成 -->
+      </tbody>
+    </table>
+  </div>
+
+  <div class="summary" id="summary"></div>
+  <div id="status" aria-live="polite" class="sr-only"></div>
 
   <script>
-    const genres = [
-      'animeandgame', 'sports', 'lifestyle',
-      'entertainment', 'society', 'humanities', 'science'
-    ];
-    const genreNames = {
-      animeandgame: 'アニメandゲーム',
-      sports: 'スポーツ',
-      lifestyle: 'ライフスタイル',
-      entertainment: '芸能',
-      society: '社会',
-      humanities: '文系学問',
-      science: '理系学問'
-    };
-    const types = ['MCQ', 'GROUP'];
-    const levels = [1, 2, 3, 4, 5];
+    (() => {
+      'use strict';
 
-    const tableBody = document.getElementById('table-body');
-    const genreFilter = document.getElementById('genreFilter');
+      const genres = [
+        'animeandgame','sports','lifestyle',
+        'entertainment','society','humanities','science'
+      ];
+      const genreNames = {
+        animeandgame:'アニメandゲーム', sports:'スポーツ', lifestyle:'ライフスタイル',
+        entertainment:'芸能', society:'社会', humanities:'文系学問', science:'理系学問'
+      };
+      const types = ['MCQ','GROUP'];
+      const levels = [1,2,3,4,5];
 
-    // プルダウンにジャンルを追加
-    genres.forEach(g => {
-      const opt = document.createElement("option");
-      opt.value = g;
-      opt.textContent = genreNames[g] || g;
-      genreFilter.appendChild(opt);
-    });
+      const tableBody   = document.getElementById('table-body');
+      const genreFilter = document.getElementById('genreFilter');
+      const backBtn     = document.getElementById('back-button');
+      const resetAllBtn = document.getElementById('resetAllBtn');
+      const summaryEl   = document.getElementById('summary');
+      const statusEl    = document.getElementById('status');
 
-    // テーブル更新
-    function updateTable() {
-      tableBody.innerHTML = '';
-      const selectedGenre = genreFilter.value;
+      const setStatus = (msg)=>{ if(statusEl) statusEl.textContent = msg; };
 
-      genres.forEach(genre => {
-        types.forEach(type => {
-          levels.forEach(level => {
-            const keyBase = `progress_${genre}_${type}_${level}`;
-            const index = localStorage.getItem(`${keyBase}_index`);
-            const score = localStorage.getItem(`${keyBase}_score`);
-
-            if ((index !== null || score !== null) && (selectedGenre === 'all' || selectedGenre === genre)) {
-              const tr = document.createElement('tr');
-              tr.innerHTML = `
-                <td>${genreNames[genre] || genre}</td>
-                <td>${type}</td>
-                <td>${level}</td>
-                <td>${index ?? '-'}</td>
-                <td>${score ?? '-'}</td>
-                <td>
-                  <button class="reset-btn" onclick="resetProgress('${keyBase}')">リセット</button>
-                </td>
-              `;
-              tableBody.appendChild(tr);
-            }
-          });
+      // フィルタ選択肢を初期化
+      (function initGenreSelect(){
+        genres.forEach(g=>{
+          const opt = document.createElement('option');
+          opt.value = g; opt.textContent = genreNames[g] || g;
+          genreFilter.appendChild(opt);
         });
-      });
-    }
+        // 前回の選択を復元
+        const saved = localStorage.getItem('progress_filter_genre');
+        if (saved && [...genreFilter.options].some(o => o.value === saved)) {
+          genreFilter.value = saved;
+        }
+      })();
 
-    function resetProgress(keyBase) {
-      if (confirm(`${keyBase} の進捗を削除しますか？`)) {
-        localStorage.removeItem(`${keyBase}_index`);
-        localStorage.removeItem(`${keyBase}_score`);
-        updateTable();
+      function keyBaseOf(genre,type,level){ return `progress_${genre}_${type}_${level}`; }
+
+      function updateSummary(rows){
+        if(!summaryEl) return;
+        const count = rows.length;
+        const sumScore = rows.reduce((s,r)=> s + (r.scoreNum ?? 0), 0);
+        summaryEl.textContent = count
+          ? `表示件数：${count}　｜　合計スコア：${sumScore}`
+          : `保存された進捗はありません。`;
       }
-    }
 
-    document.getElementById("resetAllBtn").addEventListener("click", () => {
-      if (confirm("全ジャンル・全形式・全レベルの進捗を削除しますか？")) {
-        genres.forEach(genre => {
-          types.forEach(type => {
-            levels.forEach(level => {
-              const keyBase = `progress_${genre}_${type}_${level}`;
-              localStorage.removeItem(`${keyBase}_index`);
-              localStorage.removeItem(`${keyBase}_score`);
+      function updateTable(){
+        tableBody.innerHTML = '';
+        const selected = genreFilter.value || 'all';
+
+        const rows = [];
+        genres.forEach(genre=>{
+          types.forEach(type=>{
+            levels.forEach(level=>{
+              const key = keyBaseOf(genre,type,level);
+              const index = localStorage.getItem(`${key}_index`);
+              const score = localStorage.getItem(`${key}_score`);
+              const show  = (index!==null || score!==null) && (selected==='all' || selected===genre);
+              if(!show) return;
+
+              const scoreNum = Number(score);
+              rows.push({genre,type,level,index,score,scoreNum, key});
             });
           });
         });
+
+        if(rows.length === 0){
+          const empty = document.createElement('tr');
+          empty.innerHTML = `<td colspan="6" style="padding:16px; color:var(--muted);">進捗がありません。</td>`;
+          tableBody.appendChild(empty);
+          updateSummary(rows);
+          return;
+        }
+
+        // 表示：ジャンル→形式→難易度でソート（任意）
+        rows.sort((a,b)=>{
+          const g = a.genre.localeCompare(b.genre);
+          if(g!==0) return g;
+          const t = a.type.localeCompare(b.type);
+          if(t!==0) return t;
+          return a.level - b.level;
+        });
+
+        // テーブル描画
+        const frag = document.createDocumentFragment();
+        rows.forEach(r=>{
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${genreNames[r.genre] || r.genre}</td>
+            <td>${r.type}</td>
+            <td>${r.level}</td>
+            <td>${r.index ?? '-'}</td>
+            <td>${r.score ?? '-'}</td>
+            <td><button class="reset-btn" data-key="${r.key}">リセット</button></td>
+          `;
+          frag.appendChild(tr);
+        });
+        tableBody.appendChild(frag);
+        updateSummary(rows);
+      }
+
+      // 行の「リセット」：イベント委譲で対応
+      tableBody.addEventListener('click', (e)=>{
+        const btn = e.target.closest('.reset-btn');
+        if(!btn) return;
+        const key = btn.dataset.key;
+        if(!key) return;
+
+        if(confirm(`${key} の進捗を削除しますか？`)){
+          localStorage.removeItem(`${key}_index`);
+          localStorage.removeItem(`${key}_score`);
+          setStatus(`削除: ${key}`);
+          updateTable();
+        }
+      });
+
+      // 全消し：progress_ で始まるキーを一括に（未知の組合せにも対応）
+      resetAllBtn.addEventListener('click', ()=>{
+        if(!confirm("全ジャンル・全形式・全レベルの進捗を削除しますか？")) return;
+        for(let i = localStorage.length - 1; i >= 0; i--){
+          const k = localStorage.key(i);
+          if(k && k.startsWith('progress_')) localStorage.removeItem(k);
+        }
+        setStatus('全進捗を削除しました。');
         updateTable();
         alert("全進捗を削除しました。");
-      }
-    });
+      });
 
-    genreFilter.addEventListener("change", updateTable);
-    document.getElementById("back-button").addEventListener("click", () => {
-      window.location.href = "index.html";
-    });
+      // フィルタ変更
+      genreFilter.addEventListener('change', ()=>{
+        localStorage.setItem('progress_filter_genre', genreFilter.value);
+        updateTable();
+      });
 
-    updateTable();
+      // 戻る
+      document.getElementById('back-button').addEventListener('click', ()=>{
+        window.location.href = 'index.html';
+      });
+
+      // 初期描画
+      updateTable();
+    })();
   </script>
 </body>
 </html>
